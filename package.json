@@ -9,6 +9,7 @@
     "fast-xml-parser": "^3.12.19",
     "fontoxpath": "^3.6.2",
     "slimdom": "^2.3.1",
+    "urlencode": "^1.1.0",
     "wgxpath": "^1.2.0",
     "xml2js": "^0.4.19",
     "xml2js-xpath": "^0.10.0",

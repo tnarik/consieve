@@ -2,15 +2,19 @@
 ///usr/bin/env node
 
 var nativeMessage = require('chrome-native-messaging');
+var urlencode = require('urlencode');
 
-process.stdin
-    .pipe(new nativeMessage.Input())
-    .pipe(new nativeMessage.Transform(function(msg, push, done) {
-      push({response: "that response from the native app"});
-      done();
-    }))
-    .pipe(new nativeMessage.Output())
-    .pipe(process.stdout)
+function processNative(msg, push, done) {
+  fetchFromTitle(msg.space, msg.title);
+  push({response: "that response from the native app"});
+  done();
+}
+
+//process.stdin
+//    .pipe(new nativeMessage.Input())
+//    .pipe(new nativeMessage.Transform(processNative))
+//    .pipe(new nativeMessage.Output())
+//    .pipe(process.stdout)
 
 username = process.env.CUSER
 password = process.env.CPASS
@@ -57,8 +61,7 @@ function areqListener () {
     responseJSON = JSON.parse(this.responseText);
 
     const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
-    
-
+  
 
     //console.log(responseJSON.body.storage.value);
 
@@ -75,15 +78,10 @@ function areqListener () {
 //    parseString('<p><ac:structured-macro ac:name="version-history" ac:schema-version="1" ac:macro-id="ddc718d7-58cf-468d-9df0-e8a6de3dc685"><ac:parameter ac:name="first">3</ac:parameter></ac:structured-macro></p><p><ac:structured-macro ac:name="toc" ac:schema-version="1" ac:macro-id="a0412837-acb4-4bb1-923e-95e868574f8f" /></p>', function (err, result) {
     parseString(page_storage, {explicitRoot: false}, function (err, result) {
       console.log(result);
-      console.log(result['ac:structured-macro'][0]['ac:rich-text-body'])
+      //console.log(result['ac:structured-macro'][0]['ac:rich-text-body'])
     });
     
-  
 
-
-//   //console.log(responseJSON.results[0]._links);
-//   console.log(responseJSON.results[0]._links.self);
-//   fromId(responseJSON.results[0].id, responseJSON.results[0]._links);
   } else {
     console.log("Error fetching page");
     console.log(this.status);
@@ -91,7 +89,10 @@ function areqListener () {
   }
 }
 
-function fromTitle (title) {
+function fetchFromTitle (space, title) {
+  title = urlencode(title).replace(/%20/g, "+");
+  console.log(title);
+
   var oReq = new XMLHttpRequest();
   oReq.onload = reqListener;
   oReq.open("GET", "https://"+host+"/tempcps/rest/api/content?spaceKey="+space+"&title="+title, true, username, password);
@@ -309,5 +310,5 @@ obs.observe({ entryTypes: ['measure'], buffered: true });
 // A performance timeline entry will be created
 //wrapped();
 
-
-fromTitle('Trackimo+Account+Adapter');
+var title = "Partner Account Adapter REST API";
+fetchFromTitle(space, title);
