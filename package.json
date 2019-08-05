@@ -1,0 +1,31 @@
+{
+  "name": "nodeconfla",
+  "version": "1.0.0",
+  "description": "",
+  "main": "get.js",
+  "dependencies": {
+    "chrome-native-messaging": "^0.2.0",
+    "dom-parser": "^0.1.6",
+    "fast-xml-parser": "^3.12.19",
+    "fontoxpath": "^3.6.2",
+    "slimdom": "^2.3.1",
+    "wgxpath": "^1.2.0",
+    "xml2js": "^0.4.19",
+    "xml2js-xpath": "^0.10.0",
+    "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tnarik/nodeconfla.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tnarik/nodeconfla/issues"
+  },
+  "homepage": "https://github.com/tnarik/nodeconfla#readme"
+}

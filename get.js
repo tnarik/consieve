@@ -1,3 +1,17 @@
+#!/Users/tnarik/.nvm/versions/node/v8.9.0/bin/node
+///usr/bin/env node
+
+var nativeMessage = require('chrome-native-messaging');
+
+process.stdin
+    .pipe(new nativeMessage.Input())
+    .pipe(new nativeMessage.Transform(function(msg, push, done) {
+      push({response: "that response from the native app"});
+      done();
+    }))
+    .pipe(new nativeMessage.Output())
+    .pipe(process.stdout)
+
 username = process.env.CUSER
 password = process.env.CPASS
 space = process.env.CSPACE
