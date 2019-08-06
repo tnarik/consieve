@@ -1,25 +1,29 @@
-#!/Users/tnarik/.nvm/versions/node/v8.9.0/bin/node
-///usr/bin/env node
+#!/Users/tnarik/.nvm/versions/node/v10.15.0/bin/node
+
+//# ! /usr/bin/env node
+
+//v8.9.0 on the iMac
 
 var nativeMessage = require('chrome-native-messaging');
 var urlencode = require('urlencode');
 
 function processNative(msg, push, done) {
-  fetchFromTitle(msg.space, msg.title);
-  push({response: "that response from the native app"});
-  done();
+  fs.appendFileSync('log-stdio-test.log', JSON.stringify(msg));
+  fetchFromTitle(msg.space, msg.title, push, done);
 }
 
-//process.stdin
-//    .pipe(new nativeMessage.Input())
-//    .pipe(new nativeMessage.Transform(processNative))
-//    .pipe(new nativeMessage.Output())
-//    .pipe(process.stdout)
+process.stdin
+    .pipe(new nativeMessage.Input())
+    .pipe(new nativeMessage.Transform(processNative))
+    .pipe(new nativeMessage.Output())
+    .pipe(process.stdout)
 
 username = process.env.CUSER
 password = process.env.CPASS
 space = process.env.CSPACE
 host = process.env.CHOST
+
+
 
 const {
   performance,
@@ -37,77 +41,92 @@ const times = x => f => {
 
 var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
-function reqListener () {
-  console.log("response received");
-  if (this.status == 200) {
-    //console.log(this.responseText);
-    responseJSON = JSON.parse(this.responseText);
-    console.log(this.responseText);
-    console.log(responseJSON.results[0].id);
-    //console.log(responseJSON.results[0]._links);
-    console.log(responseJSON.results[0]._links.self);
-    fromId(responseJSON.results[0].id, responseJSON.results[0]._links.self);
+function reqListener (req, push, done) {
+  console.error("response received");
+  fs.appendFileSync('log-stdio-test.log', "\nresponse received\n");
+  fs.appendFileSync('log-stdio-test.log', `${req.status}\n`);
+
+  if (req.status == 200) {
+    //console.error(req.responseText);
+    responseJSON = JSON.parse(req.responseText);
+    console.error(req.responseText);
+    console.error(responseJSON.results[0].id);
+    //console.error(responseJSON.results[0]._links);
+    console.error(responseJSON.results[0]._links.self);
+    fromId(responseJSON.results[0].id, responseJSON.results[0]._links.self, push, done);
   } else {
-    console.log("Error fetching page");
-    console.log(this.status);
-    console.log(this);
+    console.error("Error fetching page");
+    console.error(req.status);
+    console.error(req);
   }
 }
 
-function areqListener () {
-  console.log("response received");
-  if (this.status == 200) {
-    //console.log(this.responseText);
-    responseJSON = JSON.parse(this.responseText);
+function areqListener (req,push, done) {
+  console.error("response received");
+  fs.appendFileSync('log-stdio-test.log', "\nresponse received 2\n");
+  if (req.status == 200) {
+    //console.error(req.responseText);
+    responseJSON = JSON.parse(req.responseText);
 
     const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
   
 
-    //console.log(responseJSON.body.storage.value);
+    //console.error(responseJSON.body.storage.value);
 
     /* // Cannot cope correctly with Namespaces
     var DomParser = require('dom-parser');
     var parser = new DomParser();
     var dom = parser.parseFromString(page_storage);
-    console.log(dom.getElementsByTagName('ac:structured-macro'));
-    console.log(dom.getElementsByTagName('ac:structured-macro').length);
+    console.error(dom.getElementsByTagName('ac:structured-macro'));
+    console.error(dom.getElementsByTagName('ac:structured-macro').length);
     */
 
      // XML2JS
     var parseString = require('xml2js').parseString;
 //    parseString('<p><ac:structured-macro ac:name="version-history" ac:schema-version="1" ac:macro-id="ddc718d7-58cf-468d-9df0-e8a6de3dc685"><ac:parameter ac:name="first">3</ac:parameter></ac:structured-macro></p><p><ac:structured-macro ac:name="toc" ac:schema-version="1" ac:macro-id="a0412837-acb4-4bb1-923e-95e868574f8f" /></p>', function (err, result) {
     parseString(page_storage, {explicitRoot: false}, function (err, result) {
-      console.log(result);
-      //console.log(result['ac:structured-macro'][0]['ac:rich-text-body'])
+      console.error(result);
+      //console.error(result['ac:structured-macro'][0]['ac:rich-text-body'])
+      fs.appendFileSync('log-stdio-test.log', result);
+      push({response: "that response from the native app"});
+      fs.appendFileSync('log-stdio-test.log', "\npushed\n");
+      done();
+      fs.appendFileSync('log-stdio-test.log', "done\n");
     });
     
 
   } else {
-    console.log("Error fetching page");
-    console.log(this.status);
-    console.log(this);
+    console.error("Error fetching page");
+    console.error(req.status);
+    console.error(req);
   }
 }
 
-function fetchFromTitle (space, title) {
+function fetchFromTitle (space, title, push, done) {
+  fs.appendFileSync('log-stdio-test.log', `${space} and ${title}\n`);
+
   title = urlencode(title).replace(/%20/g, "+");
-  console.log(title);
+  console.error(title);
 
   var oReq = new XMLHttpRequest();
-  oReq.onload = reqListener;
+  oReq.onload = function(){reqListener(this,push, done)};
   oReq.open("GET", "https://"+host+"/tempcps/rest/api/content?spaceKey="+space+"&title="+title, true, username, password);
   oReq.setRequestHeader('Content-Type', 'application/json');
   oReq.send();
+  fs.appendFileSync('log-stdio-test.log', "sent first");
+
 }
 
-function fromId (id, url) {
-  console.log("and 2, towards "+url);
+function fromId (id, url, push, done) {
+  fs.appendFileSync('log-stdio-test.log', `${id} and ${url}\n`);
+  fs.appendFileSync('log-stdio-test.log', `second part\n`);
+  console.error("and 2, towards "+url);
   var oReq = new XMLHttpRequest();
-  oReq.onload = areqListener;
+  oReq.onload = function(){areqListener(this,push, done)};
   oReq.open("GET", url+"?expand=body.storage", true, username, password);
   oReq.setRequestHeader('Content-Type', 'application/json');
   oReq.send();
-  console.log("done sending");
+  console.error("done sending");
 }
 
 // Fails with 'Text data outside of root node.' Unless there is a root node (single wrapper node) added
@@ -122,7 +141,7 @@ function with_xml2js () {
 
   performance.mark(`Meassure-Init`);
   fs.readFile(__dirname + '/a.xml', "utf8", function(err, data) {
-      //console.log(data);
+      //console.error(data);
       //var parseString = require('xml2js').parseString;
   //    parseString('<p><ac:structured-macro ac:name="version-history" ac:schema-version="1" ac:macro-id="ddc718d7-58cf-468d-9df0-e8a6de3dc685"><ac:parameter ac:name="first">3</ac:parameter></ac:structured-macro></p><p><ac:structured-macro ac:name="toc" ac:schema-version="1" ac:macro-id="a0412837-acb4-4bb1-923e-95e868574f8f" /></p>', function (err, result) {
         //parseString(data, function (err, result) {
@@ -130,12 +149,12 @@ function with_xml2js () {
 
         parser.parseString(data, function (err, result) {
         
-        //console.log(result);
-        //console.log(result.p[1]['ac:structured-macro']);
-        //console.log(result.a['ac:structured-macro'])
-        console.log(xpath.find(result, "//ac:rich-text-body/ac:structured-macro[@ac:name='plantuml']").length); // this works
-        console.log(xpath.find(result, "//ac:structured-macro[@ac:name='plantuml']").length); // this doesn't works
-        console.log(xpath.find(result, "//ac:structured-macro[@ac:name='jira']").length); // this doesn't works
+        //console.error(result);
+        //console.error(result.p[1]['ac:structured-macro']);
+        //console.error(result.a['ac:structured-macro'])
+        console.error(xpath.find(result, "//ac:rich-text-body/ac:structured-macro[@ac:name='plantuml']").length); // this works
+        console.error(xpath.find(result, "//ac:structured-macro[@ac:name='plantuml']").length); // this doesn't works
+        console.error(xpath.find(result, "//ac:structured-macro[@ac:name='jira']").length); // this doesn't works
 
       });
     }
@@ -153,14 +172,14 @@ function with_fxp () {
 
   performance.mark(`Meassure-Init`);
   fs.readFile(__dirname + '/a.xml', "utf8", function(err, data) {
-    //console.log(data);
+    //console.error(data);
     for (let i = 0; i < 1; i++) {
       if ( parser.validate(data) === true) {
-        console.log('it validates');
+        console.error('it validates');
         var jsonObj = parser.parse(data);
-        console.log(jsonObj['ac:structured-macro']);
+        console.error(jsonObj['ac:structured-macro']);
       } else {
-        //console.log(parser.validate(data));
+        //console.error(parser.validate(data));
       }
     }
 
@@ -194,7 +213,7 @@ function with_fonto () {
   var fs = require('fs');
   performance.mark(`Meassure-Init`);
   fs.readFile(__dirname + '/a.xml', "utf8", function(err, data) {
-    //console.log(data);
+    //console.error(data);
     for (let i = 0; i < 1; i++) {
       //var dom = parser.parseFromString(data);
 
@@ -209,10 +228,10 @@ function with_fonto () {
       var dom = sync(data, options);
 
 
-      //console.log(dom.getElementsByTagName('ac:structured-macro').length);
-      //console.log(dom.getElementsByTagName('p').length);
+      //console.error(dom.getElementsByTagName('ac:structured-macro').length);
+      //console.error(dom.getElementsByTagName('p').length);
       /*
-      console.log(evaluateXPathToNodes("//ac:structured-macro[@ac:name='plantuml']", dom, domFacade, null, {namespaceResolver: function (prefix)
+      console.error(evaluateXPathToNodes("//ac:structured-macro[@ac:name='plantuml']", dom, domFacade, null, {namespaceResolver: function (prefix)
         {
             return {
                 "ac": "http://www.atlassian.com/schema/confluence/4/ac/",
@@ -220,11 +239,11 @@ function with_fonto () {
             }[prefix];
         }}).length);
         */
-      console.log(evaluateXPathToNodes("//ac:structured-macro[@ac:name='plantuml']", dom, domFacade, null, {namespaceResolver: function (prefix)
+      console.error(evaluateXPathToNodes("//ac:structured-macro[@ac:name='plantuml']", dom, domFacade, null, {namespaceResolver: function (prefix)
         {
             return options.additionalNamespaces[prefix];
         }}).length);
-      console.log(evaluateXPathToNodes("//ac:structured-macro[@ac:name='jira']", dom, domFacade, null, {namespaceResolver: function (prefix)
+      console.error(evaluateXPathToNodes("//ac:structured-macro[@ac:name='jira']", dom, domFacade, null, {namespaceResolver: function (prefix)
         {
             return options.additionalNamespaces[prefix];
         }}).length);
@@ -249,13 +268,13 @@ function with_wgxp () {
 
   performance.mark(`Meassure-Init`);
   fs.readFile(__dirname + '/a.xml', "utf8", function(err, data) {
-    //console.log(data);
+    //console.error(data);
     for (let i = 0; i < 1; i++) {
      
-        //console.log('it validates');
+        //console.error('it validates');
         var jsonObj = parser.parseFromString(data);
 
-        console.log(jsonObj);
+        console.error(jsonObj);
 
     }
 
@@ -301,7 +320,7 @@ const hook = async_hooks.createHook({
 //setTimeout(() => {wrapped()});
 
 const obs = new PerformanceObserver((list) => {
-  console.log(list.getEntries()[0]);
+  console.error(list.getEntries()[0]);
   performance.clearMarks();
   obs.disconnect();
 });
@@ -309,6 +328,10 @@ obs.observe({ entryTypes: ['measure'], buffered: true });
 
 // A performance timeline entry will be created
 //wrapped();
+
+//process.argv.forEach((val, index) => {
+//  fs.appendFileSync('electron-stdio-test.log', `${val}\n`)
+//});
 
 var title = "Partner Account Adapter REST API";
 fetchFromTitle(space, title);
