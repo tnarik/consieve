@@ -7,6 +7,10 @@
 var nativeMessage = require('chrome-native-messaging');
 var urlencode = require('urlencode');
 
+var makeRequest = require('./promiseXHR')
+
+
+
 function processNative(msg, push, done) {
   fs.appendFileSync('log-stdio-test.log', JSON.stringify(msg));
   fetchFromTitle(msg.space, msg.title, push, done);
@@ -23,6 +27,9 @@ password = process.env.CPASS
 space = process.env.CSPACE
 host = process.env.CHOST
 
+credentials = { user: username, password: password}
+
+
 
 
 const {
@@ -38,95 +45,61 @@ const times = x => f => {
   }
 }
 
-
-var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
-function reqListener (req, push, done) {
-  console.error("response received");
-  fs.appendFileSync('log-stdio-test.log', "\nresponse received\n");
-  fs.appendFileSync('log-stdio-test.log', `${req.status}\n`);
-
-  if (req.status == 200) {
-    //console.error(req.responseText);
-    responseJSON = JSON.parse(req.responseText);
-    console.error(req.responseText);
-    console.error(responseJSON.results[0].id);
-    //console.error(responseJSON.results[0]._links);
-    console.error(responseJSON.results[0]._links.self);
-    fromId(responseJSON.results[0].id, responseJSON.results[0]._links.self, push, done);
-  } else {
-    console.error("Error fetching page");
-    console.error(req.status);
-    console.error(req);
-  }
-}
-
-function areqListener (req,push, done) {
-  console.error("response received");
-  fs.appendFileSync('log-stdio-test.log', "\nresponse received 2\n");
-  if (req.status == 200) {
-    //console.error(req.responseText);
-    responseJSON = JSON.parse(req.responseText);
-
-    const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
-  
-
-    //console.error(responseJSON.body.storage.value);
-
-    /* // Cannot cope correctly with Namespaces
-    var DomParser = require('dom-parser');
-    var parser = new DomParser();
-    var dom = parser.parseFromString(page_storage);
-    console.error(dom.getElementsByTagName('ac:structured-macro'));
-    console.error(dom.getElementsByTagName('ac:structured-macro').length);
-    */
-
-     // XML2JS
-    var parseString = require('xml2js').parseString;
-//    parseString('<p><ac:structured-macro ac:name="version-history" ac:schema-version="1" ac:macro-id="ddc718d7-58cf-468d-9df0-e8a6de3dc685"><ac:parameter ac:name="first">3</ac:parameter></ac:structured-macro></p><p><ac:structured-macro ac:name="toc" ac:schema-version="1" ac:macro-id="a0412837-acb4-4bb1-923e-95e868574f8f" /></p>', function (err, result) {
-    parseString(page_storage, {explicitRoot: false}, function (err, result) {
-      console.error(result);
-      //console.error(result['ac:structured-macro'][0]['ac:rich-text-body'])
-      fs.appendFileSync('log-stdio-test.log', result);
-      push({response: "that response from the native app"});
-      fs.appendFileSync('log-stdio-test.log', "\npushed\n");
-      done();
-      fs.appendFileSync('log-stdio-test.log', "done\n");
-    });
-    
-
-  } else {
-    console.error("Error fetching page");
-    console.error(req.status);
-    console.error(req);
-  }
-}
-
-function fetchFromTitle (space, title, push, done) {
+function fetchFromTitle (space, title, push = ()=>{}, done = ()=>{}) {
   fs.appendFileSync('log-stdio-test.log', `${space} and ${title}\n`);
 
   title = urlencode(title).replace(/%20/g, "+");
   console.error(title);
 
-  var oReq = new XMLHttpRequest();
-  oReq.onload = function(){reqListener(this,push, done)};
-  oReq.open("GET", "https://"+host+"/tempcps/rest/api/content?spaceKey="+space+"&title="+title, true, username, password);
-  oReq.setRequestHeader('Content-Type', 'application/json');
-  oReq.send();
-  fs.appendFileSync('log-stdio-test.log', "sent first");
+  makeRequest(`https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}`, credentials)
+   .then(function(request) {
+      console.log(`Received: ${request.status}`);
+      fs.appendFileSync('log-stdio-test.log', "\nresponse received\n");
+      fs.appendFileSync('log-stdio-test.log', `${request.status}\n`);
 
-}
+      if (request.status == 200) {
+        responseJSON = JSON.parse(request.responseText);
+        var id = responseJSON.results[0].id
+        console.error(id);
+        var url = responseJSON.results[0]._links.self;
+        return ([id, url]);
+      } else {
+        throw(request)
+      }
+    })
+    .then(function([id, url]) {
+      fs.appendFileSync('log-stdio-test.log', `${id} and ${url}\n`);
+      fs.appendFileSync('log-stdio-test.log', `second part\n`);
+      console.error("and 2, towards "+url);
+      return(makeRequest(`${url}?expand=body.storage`, credentials))
+    })
+    .then(function(request) {
+      console.log(`Received: ${request.status}`);
+      fs.appendFileSync('log-stdio-test.log', "\nresponse received 2\n");
+      if (request.status == 200) {
+         responseJSON = JSON.parse(request.responseText);
+         const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
+         var parseString = require('xml2js').parseString;
+         parseString(page_storage, {explicitRoot: false}, function (err, result) {
+            console.error(result);
+            //console.error(result['ac:structured-macro'][0]['ac:rich-text-body'])
+            fs.appendFileSync('log-stdio-test.log', result);
+            push({response: "that response from the native app"});
+            fs.appendFileSync('log-stdio-test.log', "\npushed\n");
+            done();
+            fs.appendFileSync('log-stdio-test.log', "done\n");
+         });
+      } else {
+        throw(request);
+     }
+    })
+   .catch(function(error) {
+      console.log("a horrible error");
+      console.error("Error fetching page");
+      console.error(error.status);
+      console.error(error);
+   });
 
-function fromId (id, url, push, done) {
-  fs.appendFileSync('log-stdio-test.log', `${id} and ${url}\n`);
-  fs.appendFileSync('log-stdio-test.log', `second part\n`);
-  console.error("and 2, towards "+url);
-  var oReq = new XMLHttpRequest();
-  oReq.onload = function(){areqListener(this,push, done)};
-  oReq.open("GET", url+"?expand=body.storage", true, username, password);
-  oReq.setRequestHeader('Content-Type', 'application/json');
-  oReq.send();
-  console.error("done sending");
 }
 
 // Fails with 'Text data outside of root node.' Unless there is a root node (single wrapper node) added
