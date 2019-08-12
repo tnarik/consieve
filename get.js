@@ -12,15 +12,15 @@ var makeRequest = require('./promiseXHR')
 
 
 function processNative(msg, push, done) {
-  fs.appendFileSync('log-stdio-test.log', JSON.stringify(msg));
-  fetchFromTitle(msg.space, msg.title, push, done);
+   fs.appendFileSync('log-stdio-test.log', JSON.stringify(msg));
+   fetchFromTitle(msg.space, msg.title, push, done);
 }
 
 process.stdin
-    .pipe(new nativeMessage.Input())
-    .pipe(new nativeMessage.Transform(processNative))
-    .pipe(new nativeMessage.Output())
-    .pipe(process.stdout)
+   .pipe(new nativeMessage.Input())
+   .pipe(new nativeMessage.Transform(processNative))
+   .pipe(new nativeMessage.Output())
+   .pipe(process.stdout)
 
 username = process.env.CUSER
 password = process.env.CPASS
@@ -30,19 +30,17 @@ host = process.env.CHOST
 credentials = { user: username, password: password}
 
 
-
-
 const {
-  performance,
-  PerformanceObserver
+   performance,
+   PerformanceObserver
 } = require('perf_hooks');
 const async_hooks = require('async_hooks');
 
 const times = x => f => {
-  if (x > 0) {
-    f()
-    times (x - 1) (f)
-  }
+   if (x > 0) {
+      f()
+      times (x - 1) (f)
+   }
 }
 
 function fetchFromTitle (space, title, push = ()=>{}, done = ()=>{}) {
@@ -94,6 +92,7 @@ function fetchFromTitle (space, title, push = ()=>{}, done = ()=>{}) {
      }
     })
    .catch(function(error) {
+      fs.appendFileSync('log-stdio-test.log', `fetch error\n`);
       console.log("a horrible error");
       console.error("Error fetching page");
       console.error(error.status);
@@ -234,29 +233,27 @@ function with_fonto () {
 
 // Works, but there is no order
 function with_wgxp () {
-  var DomParser = require('dom-parser');
-  var parser = new DomParser();
-  var wgxpath = require('wgxpath');
-  var fs = require('fs');
-
-  performance.mark(`Meassure-Init`);
-  fs.readFile(__dirname + '/a.xml', "utf8", function(err, data) {
-    //console.error(data);
-    for (let i = 0; i < 1; i++) {
-     
-        //console.error('it validates');
-        var jsonObj = parser.parseFromString(data);
-
-        console.error(jsonObj);
-
-    }
-
-
-    performance.mark(`Meassure-Destroy`);
-    performance.measure(`Meassure`,
-                          `Meassure-Init`,
-                          `Meassure-Destroy`);
-  });
+   var DomParser = require('dom-parser');
+   var parser = new DomParser();
+   var wgxpath = require('wgxpath');
+   var fs = require('fs');
+   
+   performance.mark(`Meassure-Init`);
+   fs.readFile(__dirname + '/a.xml', "utf8", function(err, data) {
+      //console.error(data);
+      for (let i = 0; i < 1; i++) {
+      
+         //console.error('it validates');
+         var jsonObj = parser.parseFromString(data);
+   
+         console.error(jsonObj);
+      }
+   
+      performance.mark(`Meassure-Destroy`);
+      performance.measure(`Meassure`,
+                           `Meassure-Init`,
+                           `Meassure-Destroy`);
+   });
 
 }
 
@@ -271,21 +268,21 @@ const wrapped = performance.timerify(with_fonto);
 
 const set = new Set();
 const hook = async_hooks.createHook({
-  init(id, type) {
-    if (type === 'Timeout') {
-      performance.mark(`Timeout-${id}-Init`);
-      set.add(id);
-    }
-  },
-  destroy(id) {
-    if (set.has(id)) {
-      set.delete(id);
-      performance.mark(`Timeout-${id}-Destroy`);
-      performance.measure(`Timeout-${id}`,
-                          `Timeout-${id}-Init`,
-                          `Timeout-${id}-Destroy`);
-    }
-  }
+   init(id, type) {
+      if (type === 'Timeout') {
+         performance.mark(`Timeout-${id}-Init`);
+         set.add(id);
+      }
+   },
+   destroy(id) {
+      if (set.has(id)) {
+         set.delete(id);
+         performance.mark(`Timeout-${id}-Destroy`);
+         performance.measure(`Timeout-${id}`,
+                             `Timeout-${id}-Init`,
+                             `Timeout-${id}-Destroy`);
+      }
+   }
 });
 //hook.enable();
 
@@ -293,9 +290,9 @@ const hook = async_hooks.createHook({
 //setTimeout(() => {wrapped()});
 
 const obs = new PerformanceObserver((list) => {
-  console.error(list.getEntries()[0]);
-  performance.clearMarks();
-  obs.disconnect();
+   console.error(list.getEntries()[0]);
+   performance.clearMarks();
+   obs.disconnect();
 });
 obs.observe({ entryTypes: ['measure'], buffered: true });
 
@@ -307,4 +304,9 @@ obs.observe({ entryTypes: ['measure'], buffered: true });
 //});
 
 var title = "Partner Account Adapter REST API";
-fetchFromTitle(space, title);
+//fetchFromTitle(space, title)
+fetchFromTitle("~eduardo.gomezmelguizo@vodafone.com", "Test");
+
+if (require.main === module) {
+   fs.appendFileSync('log-stdio-test.log', `get.js used directly\n`);
+}
