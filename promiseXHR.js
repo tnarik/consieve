@@ -17,8 +17,8 @@ const fillOptions = function(options = {headers: {}}) {
 const makeRequest = function (url, options) {
    options = fillOptions(options);
 
-   console.log(url);
-   var request = new XMLHttpRequest();
+   console.error(url);
+   let request = new XMLHttpRequest();
    return new Promise(function(resolve, reject) {
 	  	request.onload = () => resolve(request);
       request.onerror = () => reject(request);

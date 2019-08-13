@@ -4,16 +4,18 @@
 
 //v8.9.0 on the iMac
 
-var nativeMessage = require('chrome-native-messaging');
-var urlencode = require('urlencode');
+const nativeMessage = require('chrome-native-messaging');
+const urlencode = require('urlencode');
+const path = require('path');
+const fs = require('fs');
 
-var makeRequest = require('./promiseXHR')
+const makeRequest = require('./promiseXHR')
 
 
 
 function processNative(msg, push, done) {
    fs.appendFileSync('log-stdio-test.log', JSON.stringify(msg));
-   fetchFromTitle(msg.space, msg.title, push, done);
+   fetchFromTitle(msg.space, msg.title, msg.host, push, done);
 }
 
 process.stdin
@@ -24,9 +26,6 @@ process.stdin
 
 username = process.env.CUSER
 password = process.env.CPASS
-space = process.env.CSPACE
-host = process.env.CHOST
-
 credentials = { user: username, password: password}
 
 
@@ -43,67 +42,87 @@ const times = x => f => {
    }
 }
 
-function fetchFromTitle (space, title, push = ()=>{}, done = ()=>{}) {
-  fs.appendFileSync('log-stdio-test.log', `${space} and ${title}\n`);
+const persistData = (p1, p2, content) => {
+   fs.appendFileSync('log-stdio-test.log', `creating path with ${p1} and ${p2}\n`);
+   var dir = path.join(p1, p2)
+   fs.appendFileSync('log-stdio-test.log', `so... ${dir}\n`);
+   if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, {recursive: true});
+   };
 
-  title = urlencode(title).replace(/%20/g, "+");
-  console.error(title);
+   fs.writeFileSync(path.join(dir, "content"), content);
+}
 
-  makeRequest(`https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}`, credentials)
-   .then(function(request) {
-      console.log(`Received: ${request.status}`);
-      fs.appendFileSync('log-stdio-test.log', "\nresponse received\n");
-      fs.appendFileSync('log-stdio-test.log', `${request.status}\n`);
+function fetchFromTitle (space, title, host = process.env.CHOST, push = ()=>{}, done = ()=>{}) {
+   fs.appendFileSync('log-stdio-test.log', `${space} and ${title}\n`);
 
-      if (request.status == 200) {
-        responseJSON = JSON.parse(request.responseText);
-        var id = responseJSON.results[0].id
-        console.error(id);
-        var url = responseJSON.results[0]._links.self;
-        return ([id, url]);
-      } else {
-        throw(request)
-      }
-    })
-    .then(function([id, url]) {
-      fs.appendFileSync('log-stdio-test.log', `${id} and ${url}\n`);
-      fs.appendFileSync('log-stdio-test.log', `second part\n`);
-      console.error("and 2, towards "+url);
-      return(makeRequest(`${url}?expand=body.storage`, credentials))
-    })
-    .then(function(request) {
-      console.log(`Received: ${request.status}`);
-      fs.appendFileSync('log-stdio-test.log', "\nresponse received 2\n");
-      if (request.status == 200) {
-         responseJSON = JSON.parse(request.responseText);
-         const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
-         var parseString = require('xml2js').parseString;
-         parseString(page_storage, {explicitRoot: false}, function (err, result) {
-            console.error(result);
-            //console.error(result['ac:structured-macro'][0]['ac:rich-text-body'])
-            fs.appendFileSync('log-stdio-test.log', result);
-            push({response: "that response from the native app"});
-            fs.appendFileSync('log-stdio-test.log', "\npushed\n");
-            done();
-            fs.appendFileSync('log-stdio-test.log', "done\n");
-         });
-      } else {
-        throw(request);
-     }
-    })
-   .catch(function(error) {
-      fs.appendFileSync('log-stdio-test.log', `fetch error\n`);
-      console.log("a horrible error");
-      console.error("Error fetching page");
-      console.error(error.status);
-      console.error(error);
-   });
+   title = urlencode(title).replace(/%20/g, "+");
+   console.error(title);
+   fs.appendFileSync('log-stdio-test.log', `${title}\n`);
 
+   fs.appendFileSync('log-stdio-test.log', `https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}\n`)
+   fs.appendFileSync('log-stdio-test.log', JSON.stringify(credentials))
+   makeRequest(`https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}`, credentials)
+      .then(function(request) {
+         console.error(`Received: ${request.status}`);
+         fs.appendFileSync('log-stdio-test.log', "\nresponse received\n");
+         fs.appendFileSync('log-stdio-test.log', `${request.status}\n`);
+   
+         if (request.status == 200) {
+            responseJSON = JSON.parse(request.responseText);
+            var id = responseJSON.results[0].id
+            console.error(id);
+            var url = responseJSON.results[0]._links.self;
+            return ([id, url]);
+         } else {
+            fs.appendFileSync('log-stdio-test.log', `1st fetch issue\n`);
+            throw(request)
+         }
+      })
+      .then(function([id, url]) {
+         fs.appendFileSync('log-stdio-test.log', `${id} and ${url}\n`);
+         fs.appendFileSync('log-stdio-test.log', `second part\n`);
+         console.error("and 2, towards "+url);
+         fs.appendFileSync('log-stdio-test.log', JSON.stringify(credentials))
+         return(makeRequest(`${url}?expand=body.storage`, credentials))
+      })
+      .then(function(request) {
+         console.error(`Received: ${request.status}`);
+         fs.appendFileSync('log-stdio-test.log', "\nresponse received 2\n");
+         if (request.status == 200) {
+            responseJSON = JSON.parse(request.responseText);
+            const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
+            var parseString = require('xml2js').parseString;
+            parseString(page_storage, {explicitRoot: false}, function (err, result) {
+               console.error(result);
+               //console.error(result['ac:structured-macro'][0]['ac:rich-text-body'])
+               fs.appendFileSync('log-stdio-test.log', result);
+               push({response: "that response from the native app"});
+               fs.appendFileSync('log-stdio-test.log', "\npushed\n");
+               done();
+               fs.appendFileSync('log-stdio-test.log', "done\n");
+
+               persistData(space, title, page_storage);
+            });
+         } else {
+           fs.appendFileSync('log-stdio-test.log', `2nd fetch issue\n`);
+           throw(request);
+        }
+      })
+      .catch(function(error) {
+         fs.appendFileSync('log-stdio-test.log', `fetch error\n`);
+         fs.appendFileSync('log-stdio-test.log', error.status);
+         console.error("a horrible error");
+         console.error("Error fetching page");
+         console.error(error.status);
+         console.error(error);
+         push({response: "AN ERROR from the native app"});
+         done()
+      });
 }
 
 // Fails with 'Text data outside of root node.' Unless there is a root node (single wrapper node) added
 // Requires a pretty explicity path, instead of catching all nodes (at least for the plantuml macro)
-var fs = require('fs');
 
 function with_xml2js () {
   var xml2js = require('xml2js');
@@ -303,10 +322,8 @@ obs.observe({ entryTypes: ['measure'], buffered: true });
 //  fs.appendFileSync('electron-stdio-test.log', `${val}\n`)
 //});
 
-var title = "Partner Account Adapter REST API";
-//fetchFromTitle(space, title)
-fetchFromTitle("~eduardo.gomezmelguizo@vodafone.com", "Test");
 
 if (require.main === module) {
    fs.appendFileSync('log-stdio-test.log', `get.js used directly\n`);
+   //fetchFromTitle("~xx.com", "Test", "confluence.sp.vodafone.com");
 }
