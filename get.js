@@ -18,12 +18,6 @@ function processNative(msg, push, done) {
    fetchFromTitle(msg.space, msg.title, msg.host, push, done);
 }
 
-process.stdin
-   .pipe(new nativeMessage.Input())
-   .pipe(new nativeMessage.Transform(processNative))
-   .pipe(new nativeMessage.Output())
-   .pipe(process.stdout)
-
 username = process.env.CUSER
 password = process.env.CPASS
 credentials = { user: username, password: password}
@@ -324,6 +318,19 @@ obs.observe({ entryTypes: ['measure'], buffered: true });
 
 
 if (require.main === module) {
-   fs.appendFileSync('log-stdio-test.log', `get.js used directly\n`);
-   //fetchFromTitle("~xx.com", "Test", "confluence.sp.vodafone.com");
+   fs.appendFileSync('log-stdio-test.log', `\nget.js used directly =>\n`);
+   fs.appendFileSync('log-stdio-test.log', `${process.argv.join('\n')}`)
+   if (process.argv.length > 2) {
+      if ( process.argv[2] == "chrome-extension://fehcjibefedmpdhalkdlpeeneojhcanc/") {
+         fs.appendFileSync('log-stdio-test.log', "this is the extension calling")
+
+         process.stdin
+            .pipe(new nativeMessage.Input())
+            .pipe(new nativeMessage.Transform(processNative))
+            .pipe(new nativeMessage.Output())
+            .pipe(process.stdout)
+      }
+   }
+
+   //fetchFromTitle("~eduardo.gomezmelguizo@vodafone.com", "Test", "confluence.sp.vodafone.com");
 }

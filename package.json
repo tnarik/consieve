@@ -1,7 +1,7 @@
 {
   "name": "nodeconfla",
   "version": "1.0.0",
-  "description": "",
+  "description": "Confluence backuper",
   "main": "get.js",
   "dependencies": {
     "chrome-native-messaging": "^0.2.0",
@@ -17,6 +17,8 @@
   },
   "devDependencies": {},
   "scripts": {
+    "postinstall": "scripts/install.js",
+    "postuninstall": "scripts/uninstall.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
