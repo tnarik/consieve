@@ -3,7 +3,6 @@
 //# ! /usr/bin/env node
 
 //v8.9.0 on the iMac
-
 const nativeMessage = require('chrome-native-messaging');
 const urlencode = require('urlencode');
 const path = require('path');
@@ -14,7 +13,7 @@ const makeRequest = require('./promiseXHR')
 
 
 function processNative(msg, push, done) {
-   fs.appendFileSync('log-stdio-test.log', JSON.stringify(msg));
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', JSON.stringify(msg));
    fetchFromTitle(msg.space, msg.title, msg.host, push, done);
 }
 
@@ -37,9 +36,9 @@ const times = x => f => {
 }
 
 const persistData = (p1, p2, content) => {
-   fs.appendFileSync('log-stdio-test.log', `creating path with ${p1} and ${p2}\n`);
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `creating path with ${p1} and ${p2}\n`);
    var dir = path.join(p1, p2)
-   fs.appendFileSync('log-stdio-test.log', `so... ${dir}\n`);
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `so... ${dir}\n`);
    if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, {recursive: true});
    };
@@ -48,19 +47,19 @@ const persistData = (p1, p2, content) => {
 }
 
 function fetchFromTitle (space, title, host = process.env.CHOST, push = ()=>{}, done = ()=>{}) {
-   fs.appendFileSync('log-stdio-test.log', `${space} and ${title}\n`);
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `${space} and ${title}\n`);
 
    title = urlencode(title).replace(/%20/g, "+");
    console.error(title);
-   fs.appendFileSync('log-stdio-test.log', `${title}\n`);
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `${title}\n`);
 
-   fs.appendFileSync('log-stdio-test.log', `https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}\n`)
-   fs.appendFileSync('log-stdio-test.log', JSON.stringify(credentials))
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}\n`)
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', JSON.stringify(credentials))
    makeRequest(`https://${host}/tempcps/rest/api/content?spaceKey=${space}&title=${title}`, credentials)
       .then(function(request) {
          console.error(`Received: ${request.status}`);
-         fs.appendFileSync('log-stdio-test.log', "\nresponse received\n");
-         fs.appendFileSync('log-stdio-test.log', `${request.status}\n`);
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', "\nresponse received\n");
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `${request.status}\n`);
    
          if (request.status == 200) {
             responseJSON = JSON.parse(request.responseText);
@@ -69,20 +68,20 @@ function fetchFromTitle (space, title, host = process.env.CHOST, push = ()=>{}, 
             var url = responseJSON.results[0]._links.self;
             return ([id, url]);
          } else {
-            fs.appendFileSync('log-stdio-test.log', `1st fetch issue\n`);
+            fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `1st fetch issue\n`);
             throw(request)
          }
       })
       .then(function([id, url]) {
-         fs.appendFileSync('log-stdio-test.log', `${id} and ${url}\n`);
-         fs.appendFileSync('log-stdio-test.log', `second part\n`);
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `${id} and ${url}\n`);
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `second part\n`);
          console.error("and 2, towards "+url);
-         fs.appendFileSync('log-stdio-test.log', JSON.stringify(credentials))
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', JSON.stringify(credentials))
          return(makeRequest(`${url}?expand=body.storage`, credentials))
       })
       .then(function(request) {
          console.error(`Received: ${request.status}`);
-         fs.appendFileSync('log-stdio-test.log', "\nresponse received 2\n");
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', "\nresponse received 2\n");
          if (request.status == 200) {
             responseJSON = JSON.parse(request.responseText);
             const page_storage = `<root>${responseJSON.body.storage.value}</root>`;
@@ -90,22 +89,22 @@ function fetchFromTitle (space, title, host = process.env.CHOST, push = ()=>{}, 
             parseString(page_storage, {explicitRoot: false}, function (err, result) {
                console.error(result);
                //console.error(result['ac:structured-macro'][0]['ac:rich-text-body'])
-               fs.appendFileSync('log-stdio-test.log', result);
+               fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', result);
                push({response: "that response from the native app"});
-               fs.appendFileSync('log-stdio-test.log', "\npushed\n");
+               fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', "\npushed\n");
                done();
-               fs.appendFileSync('log-stdio-test.log', "done\n");
+               fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', "done\n");
 
                persistData(space, title, page_storage);
             });
          } else {
-           fs.appendFileSync('log-stdio-test.log', `2nd fetch issue\n`);
+           fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `2nd fetch issue\n`);
            throw(request);
         }
       })
       .catch(function(error) {
-         fs.appendFileSync('log-stdio-test.log', `fetch error\n`);
-         fs.appendFileSync('log-stdio-test.log', error.status);
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `fetch error\n`);
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', error.status);
          console.error("a horrible error");
          console.error("Error fetching page");
          console.error(error.status);
@@ -318,11 +317,11 @@ obs.observe({ entryTypes: ['measure'], buffered: true });
 
 
 if (require.main === module) {
-   fs.appendFileSync('log-stdio-test.log', `\nget.js used directly =>\n`);
-   fs.appendFileSync('log-stdio-test.log', `${process.argv.join('\n')}`)
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `\nget.js used directly =>\n`);
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `${process.argv.join('\n')}`)
    if (process.argv.length > 2) {
       if ( process.argv[2] == "chrome-extension://fehcjibefedmpdhalkdlpeeneojhcanc/") {
-         fs.appendFileSync('log-stdio-test.log', "this is the extension calling")
+         fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', "this is the extension calling")
 
          process.stdin
             .pipe(new nativeMessage.Input())
@@ -331,6 +330,17 @@ if (require.main === module) {
             .pipe(process.stdout)
       }
    }
-
    //fetchFromTitle("~eduardo.gomezmelguizo@vodafone.com", "Test", "confluence.sp.vodafone.com");
+} else {
+   console.error("No main module")
+   fs.appendFileSync('/Users/tnarik/Desktop/nodeconfla/log-stdio-test.log', `${process.argv.join('\n')}`)
+
+   process.stdin
+      .pipe(new nativeMessage.Input())
+      .pipe(new nativeMessage.Transform(processNative))
+      .pipe(new nativeMessage.Output())
+      .pipe(process.stdout)
+   
 }
+
+module.exports = fetchFromTitle

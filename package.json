@@ -1,8 +1,9 @@
 {
-  "name": "nodeconfla",
+  "name": "consieve",
+  "productName": "Consieve",
   "version": "1.0.0",
-  "description": "Confluence backuper",
-  "main": "get.js",
+  "description": "Confluence Sieve, to obtain golden nuggets",
+  "main": "main.js",
   "dependencies": {
     "chrome-native-messaging": "^0.2.0",
     "dom-parser": "^0.1.6",
@@ -15,11 +16,16 @@
     "xml2js-xpath": "^0.10.0",
     "xmlhttprequest": "^1.8.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "electron": "^3.1.12",
+    "electron-packager": "^14.0.4"
+  },
   "scripts": {
     "postinstall": "scripts/install.js",
     "postuninstall": "scripts/uninstall.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "pack": "electron-packager . --overwrite --icon consieve.icns --out dist"
   },
   "repository": {
     "type": "git",
