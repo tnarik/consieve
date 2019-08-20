@@ -10,6 +10,15 @@ const fs = require('fs');
 
 const makeRequest = require('./promiseXHR')
 
+const conf = require('conf');
+const config = new conf();
+console.log(config)
+
+if ( !config.has('nm_installed') ) {
+   console.log("Should install the nm manifest")
+   console.log(config.set('nm_installed', true))
+}
+
 
 
 function processNative(msg, push, done) {

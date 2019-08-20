@@ -6,6 +6,7 @@
   "main": "main.js",
   "dependencies": {
     "chrome-native-messaging": "^0.2.0",
+    "conf": "^5.0.0",
     "dom-parser": "^0.1.6",
     "fast-xml-parser": "^3.12.19",
     "fontoxpath": "^3.6.2",

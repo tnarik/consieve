@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+file="assets/images/sieve.jpg"
+iconset="$(mktemp -t tt -d)"
+sips -s format png "${file}" --out "${iconset}/icon.png" &> /dev/null
+file="${iconset}/icon.png"
+
+output_icon="consieve.icns"
+#echo $iconset
+for size in {16,32,128,256,512}; do #1024 as well?
+   sips --resampleHeightWidth "${size}" "${size}" "${file}" --out "${iconset}/icon_${size}x${size}@1x.png" &> /dev/null
+   sips --resampleHeightWidth "$((size * 2))" "$((size * 2))" "${file}" --out "${iconset}/icon_${size}x${size}@2x.png" &> /dev/null
+done
+
+mv "${iconset}" "${iconset}.iconset"
+iconutil --convert icns "${iconset}.iconset" --output "assets/icons/${output_icon}"
