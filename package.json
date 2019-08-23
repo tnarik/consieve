@@ -22,13 +22,15 @@
     "electron-packager": "^14.0.4",
     "eslint": "^6.2.1",
     "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-plugin-import": "^2.18.2"
+    "eslint-plugin-import": "^2.18.2",
+    "watch": "^1.0.2"
   },
   "scripts": {
     "postinstall": "scripts/install.js",
     "postuninstall": "scripts/uninstall.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ./lib",
+    "lint": "eslint ./lib *.js",
+    "lint:watch": "watch 'npm run lint' ./lib",
     "start": "electron .",
     "pack": "electron-packager . --overwrite --icon consieve.icns --out dist"
   },
@@ -41,5 +43,11 @@
   "bugs": {
     "url": "https://github.com/tnarik/nodeconfla/issues"
   },
-  "homepage": "https://github.com/tnarik/nodeconfla#readme"
+  "homepage": "https://github.com/tnarik/nodeconfla#readme",
+  "nativeMessaging": {
+    "name": "uk.co.lecafeautomatique.consieve",
+    "extensions": [
+      "fehcjibefedmpdhalkdlpeeneojhcanc"
+    ]
+  }
 }

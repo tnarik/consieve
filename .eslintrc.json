@@ -15,12 +15,22 @@
         "ecmaVersion": 2018
     },
     "rules": {
-      "indent": ["error", 3],
+      "indent": ["error", 3, {
+        "FunctionDeclaration": {"parameters": "first"},
+        "FunctionExpression": {"parameters": "first"},
+        "CallExpression": {"arguments": "first"}
+      }],
       "eol-last": ["error", "never"],
-      "spaced-comment": ["error", "never", {
-        "line": { "exceptions": ["-"] }
+      "spaced-comment": ["error", "always", {
+        "line": { "markers": ["-", "#"] }
       }],
       "quotes": ["error", "double"],
-      "func-names": ["error", "as-needed"]
+      "func-names": ["error", "as-needed"],
+      "arrow-parens": ["error", "as-needed"],
+      "max-len": ["error", 160,  2, {
+        "ignoreUrls": true,
+        "ignoreStrings": true
+      }],
+      "comma-dangle": ["error", "never"]
     }
 }
