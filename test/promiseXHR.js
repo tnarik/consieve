@@ -1,8 +1,27 @@
-const { assert, expect } = require("chai");
+const chaiAsPromised = require("chai-as-promised")
+const { assert, expect } = require("chai").use(chaiAsPromised);
 const rewire = require("rewire")
+const nock = require('nock');
 
 const { makeRequest } = require("../lib/promiseXHR");
 const promiseXHR = rewire("../lib/promiseXHR");
+
+var valid = nock('http://www.valid.com')
+                .get('/')
+                .reply(200, {
+                 })
+                .persist();
+
+var invalid = nock('http://www.invalid.com')
+                .get('/')
+                .reply(500, {
+                 })
+                .persist();
+
+var error = nock('http://www.error.com')
+                .get('/')
+                .replyWithError({ boom: "boom!"})
+                .persist();
 
 describe("promiseXHR", () => {
    describe("fillOptions", () => {
@@ -23,11 +42,11 @@ describe("promiseXHR", () => {
 
          it("should override the method", () =>
             expect(fillOptions(optionsPOST).method).to.equal("POST") );
-         it("should override a header as case sensitive", () => {
+         it("should override a header with the same casing", () => {
             expect(Object.keys(fillOptions(optionsCTTest).headers)).to.have.lengthOf(1)
             expect(fillOptions(optionsCTTest).headers).to.have.property("Content-Type", "test/test")
          });
-         it("should override a header as case insensitive", () => {
+         it("should override a header with different casing", () => {
             expect(Object.keys(fillOptions(optionsCTTestLowerCase).headers)).to.have.lengthOf(1);
             expect(fillOptions(optionsCTTestLowerCase).headers).to.have.property(...Object.entries(optionsCTTestLowerCase.headers)[0])
          });
@@ -42,9 +61,24 @@ describe("promiseXHR", () => {
    });
 
    describe("makeRequest", () => {
+      beforeEach( () => {
+      });
+
       it("should exist", () => expect(makeRequest.name).to.equal("makeRequest") );
-      it("should return a promise", () =>
-         expect(makeRequest("http://www.google.com")).to.be.a('promise')
-      );
+      it("should return a fulfilled promise for a valid URL", () => {
+         const request = makeRequest("http://www.valid.com")
+         return expect(request).to.eventually.be.fulfilled.and.have.property('status', 200)
+      });
+      it("should return a fulfilled promise for an invalid URL", () => {
+         const request = makeRequest("http://www.invalid.com")
+         return expect(request).to.eventually.be.fulfilled.and.have.property('status', 500)
+      });
+      it("should return a rejected promise for an error", () => {
+         const request = makeRequest("http://www.error.com")
+         return expect(request).to.eventually.be.rejected.and.have.property('status', 0)
+            .then( () =>
+               expect(request).to.eventually.be.rejected.and.have.property('readyState', 4)
+            )
+      });
    });
 });
