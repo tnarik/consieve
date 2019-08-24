@@ -18,17 +18,21 @@
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "electron": "^3.1.12",
     "electron-packager": "^14.0.4",
     "eslint": "^6.2.1",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.1",
+    "rewire": "^4.0.1",
     "watch": "^1.0.2"
   },
   "scripts": {
     "postinstall": "scripts/install.js",
     "postuninstall": "scripts/uninstall.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "nyc mocha",
     "lint": "eslint ./lib *.js",
     "lint:watch": "watch 'npm run lint' ./lib",
     "start": "electron .",
