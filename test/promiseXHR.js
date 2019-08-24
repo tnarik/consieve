@@ -27,12 +27,14 @@ describe("promiseXHR", () => {
    describe("fillOptions", () => {
       const fillOptions = promiseXHR.__get__("fillOptions")
       it("should exist", () => expect(fillOptions.name).to.equal("fillOptions") );
+
       describe("by default", () => {
          it("should provide the method GET", () =>
             expect(fillOptions().method).to.equal("GET") );
          it("should provide the Content-Type header", () =>
             expect(fillOptions().headers).to.have.property("Content-Type", "application/json") );
       });
+
       describe("when passing options", () => {
          const optionsPOST = { method: "POST" }
          const optionsCTTest = { headers: {"Content-Type": "test/test"}}
@@ -46,7 +48,7 @@ describe("promiseXHR", () => {
             expect(Object.keys(fillOptions(optionsCTTest).headers)).to.have.lengthOf(1)
             expect(fillOptions(optionsCTTest).headers).to.have.property("Content-Type", "test/test")
          });
-         it("should override a header with different casing", () => {
+         it("should override a header regardless of casing", () => {
             expect(Object.keys(fillOptions(optionsCTTestLowerCase).headers)).to.have.lengthOf(1);
             expect(fillOptions(optionsCTTestLowerCase).headers).to.have.property(...Object.entries(optionsCTTestLowerCase.headers)[0])
          });
