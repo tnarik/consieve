@@ -24,15 +24,15 @@ var error = nock('http://www.error.com')
                 .persist();
 
 describe("promiseXHR", () => {
-   describe("fillOptions", () => {
-      const fillOptions = promiseXHR.__get__("fillOptions")
-      it("should exist", () => expect(fillOptions.name).to.equal("fillOptions") );
+   describe("mergeOptions", () => {
+      const mergeOptions = promiseXHR.__get__("mergeOptions")
+      it("should exist", () => expect(mergeOptions.name).to.equal("mergeOptions") );
 
       describe("by default", () => {
          it("should provide the method GET", () =>
-            expect(fillOptions().method).to.equal("GET") );
+            expect(mergeOptions().method).to.equal("GET") );
          it("should provide the Content-Type header", () =>
-            expect(fillOptions().headers).to.have.property("Content-Type", "application/json") );
+            expect(mergeOptions().headers).to.have.property("Content-Type", "application/json") );
       });
 
       describe("when passing options", () => {
@@ -43,21 +43,21 @@ describe("promiseXHR", () => {
          const optionsUsername = { username: "AUsername"}
 
          it("should override the method", () =>
-            expect(fillOptions(optionsPOST).method).to.equal("POST") );
+            expect(mergeOptions(optionsPOST).method).to.equal("POST") );
          it("should override a header with the same casing", () => {
-            expect(Object.keys(fillOptions(optionsCTTest).headers)).to.have.lengthOf(1)
-            expect(fillOptions(optionsCTTest).headers).to.have.property("Content-Type", "test/test")
+            expect(Object.keys(mergeOptions(optionsCTTest).headers)).to.have.lengthOf(1)
+            expect(mergeOptions(optionsCTTest).headers).to.have.property("Content-Type", "test/test")
          });
          it("should override a header regardless of casing", () => {
-            expect(Object.keys(fillOptions(optionsCTTestLowerCase).headers)).to.have.lengthOf(1);
-            expect(fillOptions(optionsCTTestLowerCase).headers).to.have.property(...Object.entries(optionsCTTestLowerCase.headers)[0])
+            expect(Object.keys(mergeOptions(optionsCTTestLowerCase).headers)).to.have.lengthOf(1);
+            expect(mergeOptions(optionsCTTestLowerCase).headers).to.have.property(...Object.entries(optionsCTTestLowerCase.headers)[0])
          });
          it("should add a new header if passed", () => {
-            expect(Object.keys(fillOptions(optionsAL).headers)).to.have.lengthOf(2);
-            expect(fillOptions(optionsAL).headers).to.have.property(...Object.entries(optionsAL.headers)[0]);
+            expect(Object.keys(mergeOptions(optionsAL).headers)).to.have.lengthOf(2);
+            expect(mergeOptions(optionsAL).headers).to.have.property(...Object.entries(optionsAL.headers)[0]);
          });
          it("should add a new option if passed", () =>
-            expect(fillOptions(optionsUsername)).to.have.property(...Object.entries(optionsUsername)[0])
+            expect(mergeOptions(optionsUsername)).to.have.property(...Object.entries(optionsUsername)[0])
          );
       })
    });
