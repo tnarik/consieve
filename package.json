@@ -9,13 +9,10 @@
     "chrome-native-messaging": "^0.2.0",
     "conf": "^5.0.0",
     "dom-parser": "^0.1.6",
-    "fast-xml-parser": "^3.12.19",
     "fontoxpath": "^3.6.2",
     "slimdom": "^2.3.1",
     "urlencode": "^1.1.0",
-    "wgxpath": "^1.2.0",
     "xml2js": "^0.4.19",
-    "xml2js-xpath": "^0.10.0",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
