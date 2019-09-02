@@ -1,27 +1,11 @@
 const chaiAsPromised = require("chai-as-promised")
 const { assert, expect } = require("chai").use(chaiAsPromised);
 const rewire = require("rewire")
-const nock = require('nock');
+const nockServer = require('./assets/server');
 
 const { makeRequest } = require("../lib/promiseXHR");
 const promiseXHR = rewire("../lib/promiseXHR");
 
-var valid = nock('http://www.valid.com')
-                .get('/')
-                .reply(200, {
-                 })
-                .persist();
-
-var invalid = nock('http://www.invalid.com')
-                .get('/')
-                .reply(500, {
-                 })
-                .persist();
-
-var error = nock('http://www.error.com')
-                .get('/')
-                .replyWithError({ boom: "boom!"})
-                .persist();
 
 describe("promiseXHR", () => {
    describe("mergeOptions", () => {
